@@ -6,7 +6,7 @@ import java.sql.DriverManager;
 public class DBConnect {
     private static final String URL = "jdbc:mysql://localhost:3306/library";
     private static final String USER = "root";
-    private static final String PASSWORD = ""; //pass MySQL
+    private static final String PASSWORD = "0905632186aA"; //pass MySQL
 
     public static Connection getConnection() throws Exception {
         Class.forName("com.mysql.cj.jdbc.Driver");
