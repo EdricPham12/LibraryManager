@@ -68,6 +68,10 @@ public boolean updateReader(model.Reader r) {
 
 // Xóa độc giả theo ID
 public boolean deleteReader(int id) {
+    // Trước khi xoá độc giả, cần xoá các phiếu mượn liên quan
+    BorrowingDAO borrowingDAO = new BorrowingDAO();
+    borrowingDAO.deleteBorrowingsByReaderId(id);
+
     String sql = "DELETE FROM reader WHERE reader_id=?";
     try (java.sql.Connection conn = util.DBConnect.getConnection();
          java.sql.PreparedStatement stmt = conn.prepareStatement(sql)) {

@@ -125,4 +125,46 @@ public class BorrowingDAO {
         }
         return borrowing;
     }
+
+    // Phương thức xoá phiếu mượn theo book_id
+    public boolean deleteBorrowingsByBookId(int bookId) {
+        String sql = "DELETE FROM borrowing WHERE book_id = ?";
+        try (Connection conn = DBConnect.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, bookId);
+            stmt.executeUpdate(); // Use executeUpdate for DELETE, it returns row count
+            return true; // Assuming success if no exception
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    // Phương thức xoá phiếu mượn theo reader_id
+    public boolean deleteBorrowingsByReaderId(int readerId) {
+        String sql = "DELETE FROM borrowing WHERE reader_id = ?";
+        try (Connection conn = DBConnect.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, readerId);
+            stmt.executeUpdate();
+            return true;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    // Phương thức xoá phiếu mượn theo staff_id
+    public boolean deleteBorrowingsByStaffId(int staffId) {
+        String sql = "DELETE FROM borrowing WHERE staff_id = ?";
+        try (Connection conn = DBConnect.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, staffId);
+            stmt.executeUpdate();
+            return true;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
 }

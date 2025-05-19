@@ -174,18 +174,12 @@ public class PublisherManagerPanel extends JPanel {
         // Thêm MouseListener cho bảng để xử lý sự kiện click chuột vào hàng
         table.addMouseListener(new MouseAdapter() {
             public void mouseClicked(MouseEvent e) {
-                // Lấy chỉ số hàng được chọn
                 int row = table.getSelectedRow();
-                // Kiểm tra xem có hàng nào được chọn không
-                if (row >= 0) {
-                    // Điền dữ liệu từ hàng được chọn vào các ô nhập liệu
-                    tfId.setText(tableModel.getValueAt(row, 0).toString());
-                    tfName.setText(tableModel.getValueAt(row, 1).toString());
-                    tfAddress.setText(tableModel.getValueAt(row, 2).toString());
-                    tfPhone.setText(tableModel.getValueAt(row, 3).toString());
-                    // Khóa ô nhập ID sau khi chọn
-                    tfId.setEnabled(false);
-                }
+                tfId.setText(tableModel.getValueAt(row, 0).toString());
+                tfName.setText(tableModel.getValueAt(row, 1).toString());
+                tfAddress.setText(tableModel.getValueAt(row, 2).toString());
+                tfPhone.setText(tableModel.getValueAt(row, 3).toString());
+                tfId.setEnabled(false);
             }
         });
 
@@ -202,9 +196,11 @@ public class PublisherManagerPanel extends JPanel {
         tableModel.setRowCount(0);
         // Duyệt qua danh sách nhà xuất bản và thêm vào bảng
         for (Publisher p : publishers) {
-            // Thêm hàng dữ liệu vào bảng
+            String name = p.getName() != null ? p.getName() : "(Không xác định)";
+            String address = p.getAddress() != null ? p.getAddress() : "(Không xác định)";
+            String phone = p.getPhone() != null ? p.getPhone() : "(Không xác định)";
             tableModel.addRow(new Object[]{
-                    p.getId(), p.getName(), p.getAddress(), p.getPhone()
+                    p.getId(), name, address, phone
             });
         }
         clearInputFields(); // Xóa trắng ô nhập sau khi tải lại
@@ -218,7 +214,7 @@ public class PublisherManagerPanel extends JPanel {
                  JOptionPane.showMessageDialog(this, "Vui lòng điền đầy đủ thông tin (Tên NXB, Địa chỉ, SĐT).", "Lỗi", JOptionPane.ERROR_MESSAGE);
                  return;
             }
-            // Tạo đối tượng Publisher từ dữ liệu nhập liệu (ID tự tăng, gán 0)
+            // Tạo đối tượng Publisher từ dữ liệu nhập liệu (luôn dùng ID 0 cho thêm mới)
             Publisher p = new Publisher(0,
                     tfName.getText().trim(),
                     tfAddress.getText().trim(),
@@ -369,6 +365,6 @@ public class PublisherManagerPanel extends JPanel {
         tfName.setText("");
         tfAddress.setText("");
         tfPhone.setText("");
-        tfId.setEnabled(true); // Bật lại ô ID
+        tfId.setEnabled(true);
     }
 } 

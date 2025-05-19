@@ -67,10 +67,14 @@ public class CategoryDAO {
 
     // Xóa thể loại
     public boolean deleteCategory(int categoryId) {
+        // Trước khi xoá thể loại, cập nhật category_id của sách liên quan thành NULL
+        BookDAO bookDAO = new BookDAO();
+        bookDAO.setCategoryIdToNullByCategoryId(categoryId);
+
         String sql = "DELETE FROM category WHERE category_id=?";
         try (Connection conn = DBConnect.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
-            
+
             stmt.setInt(1, categoryId);
             return stmt.executeUpdate() > 0;
         } catch (SQLException e) {

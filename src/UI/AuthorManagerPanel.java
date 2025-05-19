@@ -140,12 +140,10 @@ public class AuthorManagerPanel extends JPanel {
         table.addMouseListener(new MouseAdapter() {
             public void mouseClicked(MouseEvent e) {
                 int row = table.getSelectedRow();
-                if (row >= 0) {
-                    tfAuthorId.setText(tableModel.getValueAt(row, 0).toString());
-                    tfAuthorName.setText(tableModel.getValueAt(row, 1).toString());
-                    tfBio.setText(tableModel.getValueAt(row, 2).toString());
-                    tfAuthorId.setEnabled(false); // Không cho sửa ID
-                }
+                tfAuthorId.setText(tableModel.getValueAt(row, 0).toString());
+                tfAuthorName.setText(tableModel.getValueAt(row, 1).toString());
+                tfBio.setText(tableModel.getValueAt(row, 2).toString());
+                tfAuthorId.setEnabled(false);
             }
         });
 
@@ -158,10 +156,10 @@ public class AuthorManagerPanel extends JPanel {
         List<Author> authors = authorDAO.getAllAuthors();
         tableModel.setRowCount(0);
         for (Author a : authors) {
+            String name = a.getName() != null ? a.getName() : "(Không xác định)";
+            String bio = a.getBio() != null ? a.getBio() : "(Không xác định)";
             tableModel.addRow(new Object[]{
-                a.getId(),
-                a.getName(),
-                a.getBio()
+                a.getId(), name, bio
             });
         }
     }
@@ -176,6 +174,7 @@ public class AuthorManagerPanel extends JPanel {
                 return;
             }
 
+            // Tạo đối tượng Author từ dữ liệu nhập liệu (luôn dùng ID 0 cho thêm mới)
             Author newAuthor = new Author(0, name, bio);
             if (authorDAO.insertAuthor(newAuthor)) {
                 JOptionPane.showMessageDialog(this, "Thêm tác giả thành công!");

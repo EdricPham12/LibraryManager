@@ -172,17 +172,12 @@ public class ReaderManagerPanel extends JPanel {
         // Thêm MouseListener cho bảng để xử lý sự kiện click chuột vào hàng
         table.addMouseListener(new MouseAdapter() {
             public void mouseClicked(MouseEvent e) {
-                // Lấy chỉ số hàng được chọn
                 int row = table.getSelectedRow();
-                // Điền dữ liệu từ hàng được chọn vào các ô nhập liệu
                 tfId.setText(tableModel.getValueAt(row, 0).toString());
                 tfName.setText(tableModel.getValueAt(row, 1).toString());
-                // Lưu ý: Cột Ngày sinh (index 2) và Địa chỉ (index 3) trong bảng
-                // Cần xử lý hiển thị Ngày sinh nếu có, hiện tại chỉ lấy chuỗi
-                tfAddress.setText(tableModel.getValueAt(row, 2).toString()); // Chỉ mục đúng cho Địa chỉ (trước là 3)
-                tfPhone.setText(tableModel.getValueAt(row, 3).toString()); // Chỉ mục đúng cho SĐT (trước là 4)
-                tfEmail.setText(tableModel.getValueAt(row, 4).toString()); // Chỉ mục đúng cho Email (trước là 5)
-                // Khóa ô nhập ID sau khi chọn
+                tfAddress.setText(tableModel.getValueAt(row, 2).toString());
+                tfPhone.setText(tableModel.getValueAt(row, 3).toString());
+                tfEmail.setText(tableModel.getValueAt(row, 4).toString());
                 tfId.setEnabled(false);
             }
         });
@@ -201,9 +196,12 @@ public class ReaderManagerPanel extends JPanel {
         tableModel.setRowCount(0);
         // Duyệt qua danh sách độc giả và thêm vào bảng
         for (Reader r : readers) {
-            // Thêm hàng dữ liệu vào bảng (Lưu ý: Chưa có trường Ngày sinh trong model Reader)
+            String name = r.getName() != null ? r.getName() : "(Không xác định)";
+            String address = r.getAddress() != null ? r.getAddress() : "(Không xác định)";
+            String phone = r.getPhone() != null ? r.getPhone() : "(Không xác định)";
+            String email = r.getEmail() != null ? r.getEmail() : "(Không xác định)";
             tableModel.addRow(new Object[]{
-                    r.getId(), r.getName(), r.getAddress(), r.getPhone(), r.getEmail()
+                    r.getId(), name, address, phone, email
             });
         }
         clearInputFields(); // Xóa trắng ô nhập sau khi tải lại
@@ -218,7 +216,7 @@ public class ReaderManagerPanel extends JPanel {
                  JOptionPane.showMessageDialog(this, "Vui lòng điền đầy đủ thông tin (Họ tên, Địa chỉ, SĐT, Email).", "Lỗi", JOptionPane.ERROR_MESSAGE);
                  return;
             }
-            // Tạo đối tượng Reader từ dữ liệu nhập liệu (ID tự tăng, gán 0)
+            // Tạo đối tượng Reader từ dữ liệu nhập liệu (luôn dùng ID 0 cho thêm mới)
             Reader r = new Reader(0,
                     tfName.getText().trim(),
                     // Lưu ý: Chưa xử lý trường Ngày sinh
@@ -378,6 +376,6 @@ public class ReaderManagerPanel extends JPanel {
         tfAddress.setText("");
         tfPhone.setText("");
         tfEmail.setText("");
-        tfId.setEnabled(true); // Bật lại ô ID
+        tfId.setEnabled(true);
     }
 }

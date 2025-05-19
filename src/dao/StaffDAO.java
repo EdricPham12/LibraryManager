@@ -76,7 +76,6 @@ public class StaffDAO {
         String sql = "DELETE FROM staff WHERE staff_id=?";
         try (Connection conn = DBConnect.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
-            
             stmt.setInt(1, staffId);
             return stmt.executeUpdate() > 0;
         } catch (SQLException e) {

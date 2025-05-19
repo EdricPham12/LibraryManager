@@ -67,6 +67,10 @@ public class AuthorDAO {
 
     // Xóa tác giả
     public boolean deleteAuthor(int authorId) {
+        // Trước khi xoá tác giả, cập nhật author_id của sách liên quan thành NULL
+        BookDAO bookDAO = new BookDAO();
+        bookDAO.setAuthorIdToNullByAuthorId(authorId);
+
         String sql = "DELETE FROM author WHERE author_id=?";
         try (Connection conn = DBConnect.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {

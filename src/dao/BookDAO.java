@@ -88,6 +88,10 @@ public class BookDAO {
 
     // Xoá sách theo mã book_id
     public boolean deleteBook(int id) {
+        // Trước khi xoá sách, cần xoá các phiếu mượn liên quan
+        BorrowingDAO borrowingDAO = new BorrowingDAO();
+        borrowingDAO.deleteBorrowingsByBookId(id);
+
         String sql = "DELETE FROM book WHERE book_id=?";
 
         try (Connection conn = DBConnect.getConnection();
@@ -101,5 +105,179 @@ public class BookDAO {
         }
 
         return false;
+    }
+
+    // Phương thức lấy danh sách sách theo mã tác giả
+    public List<Book> getBooksByAuthorId(int authorId) {
+        List<Book> list = new ArrayList<>();
+        String sql = "SELECT * FROM book WHERE author_id = ?";
+
+        try (Connection conn = DBConnect.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, authorId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    Book book = new Book(
+                        rs.getInt("book_id"),
+                        rs.getString("title"),
+                        rs.getInt("author_id"),
+                        rs.getInt("publisher_id"),
+                        rs.getInt("category_id"),
+                        rs.getInt("year"),
+                        rs.getDouble("price"),
+                        rs.getInt("stock")
+                    );
+                    list.add(book);
+                }
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return list;
+    }
+
+    // Phương thức xóa sách theo mã tác giả (xóa cả các phiếu mượn liên quan)
+    public boolean deleteBooksByAuthorId(int authorId) {
+        List<Book> booksToDelete = getBooksByAuthorId(authorId);
+        boolean allDeleted = true;
+        for (Book book : booksToDelete) {
+            if (!deleteBook(book.getId())) { // Sử dụng lại phương thức deleteBook đã có
+                allDeleted = false;
+            }
+        }
+        return allDeleted;
+    }
+
+    // Phương thức lấy danh sách sách theo mã nhà xuất bản
+    public List<Book> getBooksByPublisherId(int publisherId) {
+        List<Book> list = new ArrayList<>();
+        String sql = "SELECT * FROM book WHERE publisher_id = ?";
+
+        try (Connection conn = DBConnect.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, publisherId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    Book book = new Book(
+                        rs.getInt("book_id"),
+                        rs.getString("title"),
+                        rs.getInt("author_id"),
+                        rs.getInt("publisher_id"),
+                        rs.getInt("category_id"),
+                        rs.getInt("year"),
+                        rs.getDouble("price"),
+                        rs.getInt("stock")
+                    );
+                    list.add(book);
+                }
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return list;
+    }
+
+    // Phương thức xóa sách theo mã nhà xuất bản (xóa cả các phiếu mượn liên quan)
+    public boolean deleteBooksByPublisherId(int publisherId) {
+        List<Book> booksToDelete = getBooksByPublisherId(publisherId);
+        boolean allDeleted = true;
+        for (Book book : booksToDelete) {
+            if (!deleteBook(book.getId())) {
+                allDeleted = false;
+            }
+        }
+        return allDeleted;
+    }
+
+    // Phương thức lấy danh sách sách theo mã thể loại
+    public List<Book> getBooksByCategoryId(int categoryId) {
+        List<Book> list = new ArrayList<>();
+        String sql = "SELECT * FROM book WHERE category_id = ?";
+
+        try (Connection conn = DBConnect.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, categoryId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    Book book = new Book(
+                        rs.getInt("book_id"),
+                        rs.getString("title"),
+                        rs.getInt("author_id"),
+                        rs.getInt("publisher_id"),
+                        rs.getInt("category_id"),
+                        rs.getInt("year"),
+                        rs.getDouble("price"),
+                        rs.getInt("stock")
+                    );
+                    list.add(book);
+                }
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return list;
+    }
+
+    // Phương thức xóa sách theo mã thể loại (xóa cả các phiếu mượn liên quan)
+    public boolean deleteBooksByCategoryId(int categoryId) {
+        List<Book> booksToDelete = getBooksByCategoryId(categoryId);
+        boolean allDeleted = true;
+        for (Book book : booksToDelete) {
+            if (!deleteBook(book.getId())) {
+                allDeleted = false;
+            }
+        }
+        return allDeleted;
+    }
+
+    // Phương thức đặt author_id của sách về NULL theo mã tác giả
+    public boolean setAuthorIdToNullByAuthorId(int authorId) {
+        String sql = "UPDATE book SET author_id = NULL WHERE author_id = ?";
+        try (Connection conn = DBConnect.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, authorId);
+            stmt.executeUpdate(); // executeUpdate trả về số dòng bị ảnh hưởng
+            return true; // Giả định thành công nếu không có ngoại lệ
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    // Phương thức đặt publisher_id của sách về NULL theo mã nhà xuất bản
+    public boolean setPublisherIdToNullByPublisherId(int publisherId) {
+        String sql = "UPDATE book SET publisher_id = NULL WHERE publisher_id = ?";
+        try (Connection conn = DBConnect.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, publisherId);
+            stmt.executeUpdate();
+            return true;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    // Phương thức đặt category_id của sách về NULL theo mã thể loại
+    public boolean setCategoryIdToNullByCategoryId(int categoryId) {
+        String sql = "UPDATE book SET category_id = NULL WHERE category_id = ?";
+        try (Connection conn = DBConnect.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, categoryId);
+            stmt.executeUpdate();
+            return true;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 }

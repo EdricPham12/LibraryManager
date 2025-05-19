@@ -176,17 +176,11 @@ public class CategoryManagerPanel extends JPanel {
         // Thêm MouseListener cho bảng để xử lý sự kiện click chuột vào hàng
         table.addMouseListener(new MouseAdapter() {
             public void mouseClicked(MouseEvent e) {
-                // Lấy chỉ số hàng được chọn
                 int row = table.getSelectedRow();
-                // Kiểm tra xem có hàng nào được chọn không
-                if (row >= 0) {
-                    // Điền dữ liệu từ hàng được chọn vào các ô nhập liệu
-                    tfId.setText(tableModel.getValueAt(row, 0).toString());
-                    tfName.setText(tableModel.getValueAt(row, 1).toString());
-                    taDescription.setText(tableModel.getValueAt(row, 2).toString());
-                    // Khóa ô nhập ID sau khi chọn
-                    tfId.setEnabled(false);
-                }
+                tfId.setText(tableModel.getValueAt(row, 0).toString());
+                tfName.setText(tableModel.getValueAt(row, 1).toString());
+                taDescription.setText(tableModel.getValueAt(row, 2).toString());
+                tfId.setEnabled(false);
             }
         });
 
@@ -203,9 +197,10 @@ public class CategoryManagerPanel extends JPanel {
         tableModel.setRowCount(0);
         // Duyệt qua danh sách danh mục và thêm vào bảng
         for (Category c : categories) {
-            // Thêm hàng dữ liệu vào bảng
+            String name = c.getName() != null ? c.getName() : "(Không xác định)";
+            String description = c.getDescription() != null ? c.getDescription() : "(Không xác định)";
             tableModel.addRow(new Object[]{
-                    c.getId(), c.getName(), c.getDescription()
+                    c.getId(), name, description
             });
         }
         clearInputFields(); // Xóa trắng ô nhập sau khi tải lại
@@ -219,7 +214,7 @@ public class CategoryManagerPanel extends JPanel {
                  JOptionPane.showMessageDialog(this, "Vui lòng điền đầy đủ thông tin (Tên Danh mục, Mô tả).", "Lỗi", JOptionPane.ERROR_MESSAGE);
                  return;
             }
-            // Tạo đối tượng Category từ dữ liệu nhập liệu (ID tự tăng, gán 0)
+            // Tạo đối tượng Category từ dữ liệu nhập liệu (luôn dùng ID 0 cho thêm mới)
             Category c = new Category(0,
                     tfName.getText().trim(),
                     taDescription.getText().trim()
@@ -330,8 +325,10 @@ public class CategoryManagerPanel extends JPanel {
                 c.getName().toLowerCase().contains(keyword) ||
                 c.getDescription().toLowerCase().contains(keyword)) {
                 // Thêm hàng dữ liệu nếu khớp
+                String name = c.getName() != null ? c.getName() : "(Không xác định)";
+                String description = c.getDescription() != null ? c.getDescription() : "(Không xác định)";
                 tableModel.addRow(new Object[]{
-                        c.getId(), c.getName(), c.getDescription()
+                        c.getId(), name, description
                 });
             }
         }
@@ -366,6 +363,6 @@ public class CategoryManagerPanel extends JPanel {
         tfId.setText("");
         tfName.setText("");
         taDescription.setText("");
-        tfId.setEnabled(true); // Bật lại ô ID
+        tfId.setEnabled(true);
     }
 } 

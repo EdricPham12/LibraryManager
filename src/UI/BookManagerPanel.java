@@ -221,17 +221,16 @@ public class BookManagerPanel extends JPanel {
         // Thêm MouseListener cho bảng để xử lý sự kiện click chuột vào hàng
         table.addMouseListener(new MouseAdapter() {
             public void mouseClicked(MouseEvent e) {
-                // Lấy chỉ số hàng được chọn
                 int row = table.getSelectedRow();
-                // Điền dữ liệu từ hàng được chọn vào các ô nhập liệu
                 tfId.setText(tableModel.getValueAt(row, 0).toString());
                 tfTitle.setText(tableModel.getValueAt(row, 1).toString());
                 setSelectedComboBox(cbAuthor, tableModel.getValueAt(row, 2).toString());
                 setSelectedComboBox(cbPublisher, tableModel.getValueAt(row, 3).toString());
-                setSelectedComboBox(cbCategory, tableModel.getValueAt(row, 4).toString());
-                tfYear.setText(tableModel.getValueAt(row, 5).toString());
+                tfYear.setText(tableModel.getValueAt(row, 4).toString()); // Năm xuất bản đúng cột
+                setSelectedComboBox(cbCategory, tableModel.getValueAt(row, 5).toString()); // Thể loại đúng cột
                 tfPrice.setText(tableModel.getValueAt(row, 6).toString());
                 tfStock.setText(tableModel.getValueAt(row, 7).toString());
+                tfId.setEnabled(false);
             }
         });
 
@@ -252,37 +251,30 @@ public class BookManagerPanel extends JPanel {
         tableModel.setRowCount(0);
         // Duyệt qua danh sách sách và thêm vào bảng
         for (Book b : books) {
-            // Khởi tạo tên mặc định
-            String authorName = "";
-            String publisherName = "";
-            String categoryName = "";
-
-            // Tìm tên Tác giả dựa trên ID
+            String authorName = "(Không xác định)";
+            String publisherName = "(Không xác định)";
+            String categoryName = "(Không xác định)";
             for (Author a : authorDAO.getAllAuthors()) {
                 if (a.getId() == b.getAuthorId()) {
                     authorName = a.getName();
                     break;
                 }
             }
-            // Tìm tên Nhà xuất bản dựa trên ID
             for (Publisher p : publisherDAO.getAllPublishers()) {
                 if (p.getId() == b.getPublisherId()) {
                     publisherName = p.getName();
                     break;
                 }
             }
-            // Tìm tên Thể loại dựa trên ID
             for (Category c : categoryDAO.getAllCategories()) {
                 if (c.getId() == b.getCategoryId()) {
                     categoryName = c.getName();
                     break;
                 }
             }
-
-            // Thêm hàng dữ liệu vào bảng
             tableModel.addRow(new Object[]{
-                    b.getId(), b.getTitle(), authorName, publisherName, categoryName,
-                    b.getYear(), b.getPrice(), b.getStock()
+                    b.getId(), b.getTitle(), authorName, publisherName, b.getYear(), categoryName,
+                    b.getPrice(), b.getStock()
             });
         }
     }
@@ -290,8 +282,8 @@ public class BookManagerPanel extends JPanel {
     // Phương thức xử lý thêm sách mới
     private void addBook() {
         try {
-            // Tạo đối tượng Book từ dữ liệu nhập liệu
-            Book b = new Book(0, // ID tự tăng, gán 0
+            // Tạo đối tượng Book từ dữ liệu nhập liệu (luôn dùng ID 0 cho thêm mới)
+            Book b = new Book(0, 
                     tfTitle.getText(),
                     // Lấy ID từ item được chọn trong ComboBox
                     ((Author) cbAuthor.getSelectedItem()).getId(),
@@ -390,16 +382,27 @@ public class BookManagerPanel extends JPanel {
         tableModel.setRowCount(0);
         // Duyệt qua danh sách sách để tìm kiếm
         for (Book b : books) {
-            // Khởi tạo tên mặc định
-            String authorName = "";
-            String publisherName = "";
-            String categoryName = "";
-
-            // Tìm tên Tác giả, NXB, Thể loại
-            for (Author a : authorDAO.getAllAuthors()) { if (a.getId() == b.getAuthorId()) { authorName = a.getName(); break; } }
-            for (Publisher p : publisherDAO.getAllPublishers()) { if (p.getId() == b.getPublisherId()) { publisherName = p.getName(); break; } }
-            for (Category c : categoryDAO.getAllCategories()) { if (c.getId() == b.getCategoryId()) { categoryName = c.getName(); break; } }
-
+            String authorName = "(Không xác định)";
+            String publisherName = "(Không xác định)";
+            String categoryName = "(Không xác định)";
+            for (Author a : authorDAO.getAllAuthors()) {
+                if (a.getId() == b.getAuthorId()) {
+                    authorName = a.getName();
+                    break;
+                }
+            }
+            for (Publisher p : publisherDAO.getAllPublishers()) {
+                if (p.getId() == b.getPublisherId()) {
+                    publisherName = p.getName();
+                    break;
+                }
+            }
+            for (Category c : categoryDAO.getAllCategories()) {
+                if (c.getId() == b.getCategoryId()) {
+                    categoryName = c.getName();
+                    break;
+                }
+            }
             // Kiểm tra nếu từ khóa khớp với bất kỳ trường nào (ID, tiêu đề, tên tác giả/NXB/thể loại, năm, giá, tồn kho)
             if (String.valueOf(b.getId()).contains(keyword) ||
                 b.getTitle().toLowerCase().contains(keyword) ||
@@ -411,8 +414,8 @@ public class BookManagerPanel extends JPanel {
                 String.valueOf(b.getStock()).contains(keyword)) {
                 // Thêm hàng dữ liệu nếu khớp
                 tableModel.addRow(new Object[]{
-                        b.getId(), b.getTitle(), authorName, publisherName, categoryName,
-                        b.getYear(), b.getPrice(), b.getStock()
+                        b.getId(), b.getTitle(), authorName, publisherName, b.getYear(), categoryName,
+                        b.getPrice(), b.getStock()
                 });
             }
         }
@@ -460,5 +463,15 @@ public class BookManagerPanel extends JPanel {
                 break; // Thoát vòng lặp sau khi tìm thấy
             }
         }
+    }
+
+    // Phương thức tiện ích để xóa trắng các ô nhập liệu và bật lại ô ID
+    private void clearInputFields() {
+        tfId.setText("");
+        tfTitle.setText("");
+        tfYear.setText("");
+        tfPrice.setText("");
+        tfStock.setText(""); // Xóa trắng ô tồn kho
+        tfId.setEnabled(true); // Bật lại ô ID
     }
 }

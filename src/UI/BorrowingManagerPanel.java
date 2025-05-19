@@ -208,6 +208,7 @@ public class BorrowingManagerPanel extends JPanel {
         table.addMouseListener(new MouseAdapter() {
             public void mouseClicked(MouseEvent e) {
                 int row = table.getSelectedRow();
+                tfBorrowId.setText(tableModel.getValueAt(row, 0).toString());
                 if (row >= 0) {
                     tfBorrowId.setText(tableModel.getValueAt(row, 0).toString());
 
@@ -235,7 +236,7 @@ public class BorrowingManagerPanel extends JPanel {
                          clearInputFields();
                     }
 
-                    tfBorrowId.setEnabled(false); // Không cho sửa ID
+                    tfBorrowId.setEnabled(false);
                 }
             }
         });
@@ -268,34 +269,27 @@ public class BorrowingManagerPanel extends JPanel {
         List<Staff> allStaffs = staffDAO.getAllStaffs();
 
         for (Borrowing b : borrowings) {
-            String bookTitle = "";
-            String readerName = "";
-            String staffName = "";
-
-            // Tìm tên sách
+            String bookTitle = "(Không xác định)";
+            String readerName = "(Không xác định)";
+            String staffName = "(Không xác định)";
             for(Book book : allBooks) {
                 if (book.getId() == b.getBookId()) {
                     bookTitle = book.getTitle();
                     break;
                 }
             }
-
-            // Tìm tên độc giả
             for(Reader reader : allReaders) {
                 if (reader.getId() == b.getReaderId()) {
                     readerName = reader.getName();
                     break;
                 }
             }
-            
-            // Tìm tên nhân viên
             for(Staff staff : allStaffs) {
                 if (staff.getId() == b.getStaffId()) {
                     staffName = staff.getName();
                     break;
                 }
             }
-
             tableModel.addRow(new Object[]{
                 b.getId(),
                 bookTitle,
@@ -326,6 +320,7 @@ public class BorrowingManagerPanel extends JPanel {
             int staffId = selectedStaff.getId(); // Lấy ID Nhân viên
             java.sql.Date borrowSqlDate = new java.sql.Date(borrowUtilDate.getTime());
 
+            // Tạo đối tượng Borrowing từ dữ liệu nhập liệu (luôn dùng ID 0 cho thêm mới)
             Borrowing newBorrowing = new Borrowing(0, readerId, bookId, staffId, borrowSqlDate, null, status);
 
             if (borrowingDAO.insertBorrowing(newBorrowing)) {
@@ -419,9 +414,9 @@ public class BorrowingManagerPanel extends JPanel {
         List<Staff> allStaffs = staffDAO.getAllStaffs();
 
         for (Borrowing b : allBorrowings) {
-            String bookTitle = "";
-            String readerName = "";
-            String staffName = "";
+            String bookTitle = "(Không xác định)";
+            String readerName = "(Không xác định)";
+            String staffName = "(Không xác định)";
             String borrowDateStr = (b.getBorrowDate() != null) ? dateFormat.format(b.getBorrowDate()) : "";
             String returnDateStr = (b.getReturnDate() != null) ? dateFormat.format(b.getReturnDate()) : "";
 
@@ -476,7 +471,7 @@ public class BorrowingManagerPanel extends JPanel {
         tfBorrowId.setText("");
         cbBook.setSelectedIndex(-1);
         cbReader.setSelectedIndex(-1);
-        cbStaff.setSelectedIndex(-1); // Clear ComboBox Nhân viên
+        cbStaff.setSelectedIndex(-1);
         dcBorrowDate.setDate(null);
         dcReturnDate.setDate(null);
         cbStatus.setSelectedIndex(-1);

@@ -70,6 +70,10 @@ public class PublisherDAO {
 
     // Xóa nhà xuất bản
     public boolean deletePublisher(int publisherId) {
+        // Trước khi xoá nhà xuất bản, cập nhật publisher_id của sách liên quan thành NULL
+        BookDAO bookDAO = new BookDAO();
+        bookDAO.setPublisherIdToNullByPublisherId(publisherId);
+
         String sql = "DELETE FROM publisher WHERE publisher_id=?";
         try (Connection conn = DBConnect.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {

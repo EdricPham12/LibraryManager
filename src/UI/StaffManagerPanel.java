@@ -118,11 +118,10 @@ public class StaffManagerPanel extends JPanel {
         // ====== BẢNG HIỂN THỊ DỮ LIỆU ======
         // Khởi tạo tableModel với các cột và không cho phép sửa trực tiếp
         tableModel = new DefaultTableModel(new String[]{
-                "Mã NV", "Họ tên", "SĐT", "Email", "Chức vụ"
+                "Mã NV", "Họ tên", "Chức vụ", "SĐT", "Email"
         }, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
-                // Không cho phép sửa trực tiếp trên bảng
                 return false;
             }
         };
@@ -185,17 +184,13 @@ public class StaffManagerPanel extends JPanel {
         // Thêm MouseListener cho bảng để xử lý sự kiện click chuột vào hàng
         table.addMouseListener(new MouseAdapter() {
             public void mouseClicked(MouseEvent e) {
-                // Lấy chỉ số hàng được chọn
                 int row = table.getSelectedRow();
-                // Kiểm tra xem có hàng nào được chọn không
                 if (row >= 0) {
-                    // Điền dữ liệu từ hàng được chọn vào các ô nhập liệu
-                    tfStaffId.setText(tableModel.getValueAt(row, 0).toString());
-                    tfName.setText(tableModel.getValueAt(row, 1).toString());
-                    tfPhone.setText(tableModel.getValueAt(row, 2).toString());
-                    tfEmail.setText(tableModel.getValueAt(row, 3).toString());
-                    cbPosition.setSelectedItem(tableModel.getValueAt(row, 4).toString());
-                    // Khóa ô nhập ID sau khi chọn
+                    tfStaffId.setText(tableModel.getValueAt(row, 0).toString()); // Mã NV
+                    tfName.setText(tableModel.getValueAt(row, 1).toString());    // Họ tên
+                    cbPosition.setSelectedItem(tableModel.getValueAt(row, 2).toString()); // Chức vụ
+                    tfPhone.setText(tableModel.getValueAt(row, 3).toString());   // SĐT
+                    tfEmail.setText(tableModel.getValueAt(row, 4).toString());   // Email
                     tfStaffId.setEnabled(false);
                 }
             }
@@ -214,9 +209,12 @@ public class StaffManagerPanel extends JPanel {
         tableModel.setRowCount(0);
         // Duyệt qua danh sách nhân viên và thêm vào bảng
         for (Staff s : staffs) {
-            // Thêm hàng dữ liệu vào bảng
+            String name = s.getName() != null ? s.getName() : "(Không xác định)";
+            String position = s.getPosition() != null ? s.getPosition() : "(Không xác định)";
+            String phone = s.getPhone() != null ? s.getPhone() : "(Không xác định)";
+            String email = s.getEmail() != null ? s.getEmail() : "(Không xác định)";
             tableModel.addRow(new Object[]{
-                    s.getId(), s.getName(), s.getPhone(), s.getEmail(), s.getPosition()
+                    s.getId(), name, position, phone, email
             });
         }
         clearInputFields(); // Xóa trắng ô nhập sau khi tải lại
@@ -224,31 +222,26 @@ public class StaffManagerPanel extends JPanel {
 
     // Phương thức xử lý thêm nhân viên mới
     private void addStaff() {
-         try {
-            // Kiểm tra các trường bắt buộc
+        try {
             if (tfName.getText().trim().isEmpty() || tfPhone.getText().trim().isEmpty() || tfEmail.getText().trim().isEmpty() || cbPosition.getSelectedItem() == null) {
-                 JOptionPane.showMessageDialog(this, "Vui lòng điền đầy đủ thông tin (Họ tên, SĐT, Email, Chức vụ).", "Lỗi", JOptionPane.ERROR_MESSAGE);
-                 return;
+                JOptionPane.showMessageDialog(this, "Vui lòng điền đầy đủ thông tin (Họ tên, SĐT, Email, Chức vụ).", "Lỗi", JOptionPane.ERROR_MESSAGE);
+                return;
             }
-            // Tạo đối tượng Staff từ dữ liệu nhập liệu (ID tự tăng, gán 0)
+            // Tạo đối tượng Staff đúng thứ tự constructor (id, name, position, phone, email)
             Staff s = new Staff(0,
-                    tfName.getText().trim(),
-                    tfPhone.getText().trim(),
-                    tfEmail.getText().trim(),
-                    cbPosition.getSelectedItem().toString()
+                tfName.getText().trim(),
+                cbPosition.getSelectedItem().toString(),
+                tfPhone.getText().trim(),
+                tfEmail.getText().trim()
             );
-            // Gọi phương thức insert của DAO
             if (staffDAO.insertStaff(s)) {
-                // Hiển thị thông báo thành công, tải lại bảng, và xóa trắng ô nhập
                 JOptionPane.showMessageDialog(this, "Thêm nhân viên thành công!");
                 loadStaffs();
                 clearInputFields();
             } else {
-                // Hiển thị thông báo thất bại
                 JOptionPane.showMessageDialog(this, "Thêm nhân viên thất bại.");
             }
         } catch (Exception ex) {
-            // Xử lý lỗi và hiển thị thông báo lỗi
             JOptionPane.showMessageDialog(this, "Lỗi khi thêm nhân viên: " + ex.getMessage());
         }
     }
@@ -256,50 +249,44 @@ public class StaffManagerPanel extends JPanel {
     // Phương thức xử lý cập nhật thông tin nhân viên
     private void updateStaff() {
         try {
-             // Kiểm tra xem đã chọn nhân viên từ bảng chưa
-             if (tfStaffId.getText().isEmpty()) {
-                 JOptionPane.showMessageDialog(this, "Vui lòng chọn nhân viên cần cập nhật từ bảng.", "Cảnh báo", JOptionPane.WARNING_MESSAGE);
-                 return;
-             }
-             // Kiểm tra các trường bắt buộc
-             if (tfName.getText().trim().isEmpty() || tfPhone.getText().trim().isEmpty() || tfEmail.getText().trim().isEmpty() || cbPosition.getSelectedItem() == null) {
-                 JOptionPane.showMessageDialog(this, "Vui lòng điền đầy đủ thông tin (Họ tên, SĐT, Email, Chức vụ).", "Lỗi", JOptionPane.ERROR_MESSAGE);
-                 return;
+            if (tfStaffId.getText().isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Vui lòng chọn nhân viên cần cập nhật từ bảng.", "Cảnh báo", JOptionPane.WARNING_MESSAGE);
+                return;
             }
-            // Tạo đối tượng Staff từ dữ liệu nhập liệu (bao gồm ID)
+            if (tfName.getText().trim().isEmpty() || tfPhone.getText().trim().isEmpty() || tfEmail.getText().trim().isEmpty() || cbPosition.getSelectedItem() == null) {
+                JOptionPane.showMessageDialog(this, "Vui lòng điền đầy đủ thông tin (Họ tên, SĐT, Email, Chức vụ).", "Lỗi", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            // Tạo đối tượng Staff đúng thứ tự constructor (id, name, position, phone, email)
             Staff s = new Staff(
-                    Integer.parseInt(tfStaffId.getText()), // Lấy ID từ ô nhập liệu
-                    tfName.getText().trim(),
-                    tfPhone.getText().trim(),
-                    tfEmail.getText().trim(),
-                    cbPosition.getSelectedItem().toString()
+                Integer.parseInt(tfStaffId.getText()),
+                tfName.getText().trim(),
+                cbPosition.getSelectedItem().toString(),
+                tfPhone.getText().trim(),
+                tfEmail.getText().trim()
             );
-            // Gọi phương thức update của DAO
             if (staffDAO.updateStaff(s)) {
-                // Hiển thị thông báo thành công, tải lại bảng, và xóa trắng ô nhập
                 JOptionPane.showMessageDialog(this, "Cập nhật thành công!");
                 loadStaffs();
                 clearInputFields();
             } else {
-                // Hiển thị thông báo thất bại
                 JOptionPane.showMessageDialog(this, "Cập nhật thất bại.");
             }
         } catch (NumberFormatException ex) {
-             JOptionPane.showMessageDialog(this, "Mã nhân viên không hợp lệ: " + ex.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Mã nhân viên không hợp lệ: " + ex.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
         } catch (Exception ex) {
-            // Xử lý lỗi và hiển thị thông báo lỗi
             JOptionPane.showMessageDialog(this, "Lỗi khi cập nhật nhân viên: " + ex.getMessage());
         }
     }
 
     // Phương thức xử lý xóa nhân viên
     private void deleteStaff() {
-         try {
-             // Kiểm tra xem đã chọn nhân viên từ bảng chưa
+        try {
+            // Kiểm tra xem đã chọn nhân viên từ bảng chưa
             if (tfStaffId.getText().isEmpty()) {
-                 JOptionPane.showMessageDialog(this, "Vui lòng chọn nhân viên cần xóa từ bảng.", "Cảnh báo", JOptionPane.WARNING_MESSAGE);
-                 return;
-             }
+                JOptionPane.showMessageDialog(this, "Vui lòng chọn nhân viên cần xóa từ bảng.", "Cảnh báo", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
             // Lấy ID nhân viên cần xóa
             int id = Integer.parseInt(tfStaffId.getText());
             // Hiển thị hộp thoại xác nhận xóa
@@ -318,7 +305,7 @@ public class StaffManagerPanel extends JPanel {
                 }
             }
         } catch (NumberFormatException ex) {
-             JOptionPane.showMessageDialog(this, "Mã nhân viên không hợp lệ: " + ex.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Mã nhân viên không hợp lệ: " + ex.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
         } catch (Exception ex) {
             // Xử lý lỗi và hiển thị thông báo lỗi
             JOptionPane.showMessageDialog(this, "Lỗi khi xóa nhân viên: " + ex.getMessage());
@@ -343,12 +330,16 @@ public class StaffManagerPanel extends JPanel {
             // Kiểm tra nếu từ khóa khớp với bất kỳ trường nào (ID, tên, SĐT, email, chức vụ)
             if (String.valueOf(s.getId()).contains(keyword) ||
                 s.getName().toLowerCase().contains(keyword) ||
+                s.getPosition().toLowerCase().contains(keyword) ||
                 s.getPhone().toLowerCase().contains(keyword) ||
-                s.getEmail().toLowerCase().contains(keyword) ||
-                s.getPosition().toLowerCase().contains(keyword)) {
+                s.getEmail().toLowerCase().contains(keyword)) {
                 // Thêm hàng dữ liệu nếu khớp
                 tableModel.addRow(new Object[]{
-                        s.getId(), s.getName(), s.getPhone(), s.getEmail(), s.getPosition()
+                        s.getId(),
+                        s.getName(),
+                        s.getPosition(),
+                        s.getPhone(),
+                        s.getEmail()
                 });
             }
         }
