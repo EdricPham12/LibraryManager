@@ -1,36 +1,57 @@
+// Lớp đại diện cho Sách
 package model;
 
 public class Book {
-    // Thuộc tính của lớp Book
-    private int id;
-    private String title;
-    private String author;
-    private int year;
+private int id; // Mã sách
+private String title; // Tên sách
+private int authorId; // Mã tác giả
+private int publisherId; // Mã nhà xuất bản
+private int categoryId; // Mã thể loại
+private int year; // Năm xuất bản
+private double price; // Giá sách
+private int stock; // Số lượng tồn
 
-    // Constructor không tham số (mặc định)
-    public Book() {}
+public Book() {}
 
-    // Constructor có tham số để khởi tạo đối tượng Book
-    public Book(int id, String title, String author, int year) {
-        this.id = id;
-        this.title = title;
-        this.author = author;
-        this.year = year;
-    }
-
-    // Getter và Setter cho từng thuộc tính
-    public int getId() { return id; }
-    public void setId(int id) { this.id = id; }
-
-    public String getTitle() { return title; }
-    public void setTitle(String title) { this.title = title; }
-
-    public String getAuthor() { return author; }
-    public void setAuthor(String author) { this.author = author; }
-
-    public int getYear() { return year; }
-    public void setYear(int year) { this.year = year; }
+public Book(int id, String title, int authorId, int publisherId, int categoryId, int year, double price, int stock) {
+    this.id = id;
+    this.title = title;
+    this.authorId = authorId;
+    this.publisherId = publisherId;
+    this.categoryId = categoryId;
+    this.year = year;
+    this.price = price;
+    this.stock = stock;
 }
 
-// Lớp BookDAO chứa các phương thức để tương tác với bảng Book trong cơ sở dữ liệu
-// Bao gồm các phương thức thêm, lấy tất cả sách từ CSDL
+// Getter và Setter (phương thức truy cập)
+public int getId() { return id; }
+public void setId(int id) { this.id = id; }
+
+public String getTitle() { return title; }
+public void setTitle(String title) { this.title = title; }
+
+public int getAuthorId() { return authorId; }
+public void setAuthorId(int authorId) { this.authorId = authorId; }
+
+public int getPublisherId() { return publisherId; }
+public void setPublisherId(int publisherId) { this.publisherId = publisherId; }
+
+public int getCategoryId() { return categoryId; }
+public void setCategoryId(int categoryId) { this.categoryId = categoryId; }
+
+public int getYear() { return year; }
+public void setYear(int year) { this.year = year; }
+
+public double getPrice() { return price; }
+public void setPrice(double price) { this.price = price; }
+
+public int getStock() { return stock; }
+public void setStock(int stock) { this.stock = stock; }
+
+// Ghi đè phương thức toString() để hiển thị tên sách trong JComboBox
+@Override
+public String toString() {
+    return this.title;
+}
+}
