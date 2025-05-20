@@ -19,7 +19,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 // Import cho JDateChooser (Cần thêm thư viện JCalendar vào project)
-import com.toedter.calendar.JDateChooser;
+// import com.toedter.calendar.JDateChooser;
 
 // Import DAO và Model cho mượn/trả sách khi cần
 // import dao.BorrowingDAO;
@@ -29,12 +29,11 @@ public class BorrowingManagerPanel extends JPanel {
     private JTable table;
     private DefaultTableModel tableModel;
     // Thêm các JTextField hoặc JComboBox cho nhập liệu mượn/trả sách tại đây
-    private JTextField tfBorrowId, tfSearch;
+    private JTextField tfBorrowId, tfSearch, tfBorrowDate, tfReturnDate;
     private JComboBox<Book> cbBook;
     private JComboBox<Reader> cbReader;
     private JComboBox<Staff> cbStaff; // Thêm JComboBox cho Nhân viên
     private JComboBox<String> cbStatus; // Thay thế JTextField tfStatus bằng JComboBox
-    private JDateChooser dcBorrowDate, dcReturnDate; // Thêm JDateChooser cho ngày mượn và ngày trả
 
     // Khai báo DAO khi cần
     private BorrowingDAO borrowingDAO = new BorrowingDAO();
@@ -83,15 +82,15 @@ public class BorrowingManagerPanel extends JPanel {
         cbReader = new JComboBox<>();
         cbStaff = new JComboBox<>(); // Khởi tạo JComboBox cho Nhân viên
         cbStatus = new JComboBox<>(new String[]{"Đang mượn", "Đã trả"}); // Khởi tạo ComboBox trạng thái
-        dcBorrowDate = new JDateChooser(); // Khởi tạo JDateChooser ngày mượn
-        dcReturnDate = new JDateChooser(); // Khởi tạo JDateChooser ngày trả
+        tfBorrowDate = new JTextField(10); // Thay thế JDateChooser bằng JTextField
+        tfReturnDate = new JTextField(10); // Thay thế JDateChooser bằng JTextField
 
         // Load dữ liệu vào ComboBox Sách, Độc giả, và Nhân viên
         loadComboBoxData();
 
         // Tạm thời giữ class RoundedBorder ở đây nếu cần sử dụng lại
         // Copy class RoundedBorder từ BookManagerPanel hoặc ReaderManagerPanel.
-         JTextField[] textFields = {tfBorrowId};
+         JTextField[] textFields = {tfBorrowId, tfBorrowDate, tfReturnDate};
          for (JTextField f : textFields) {
              f.setBorder(new RoundedBorder(8));
              f.setBackground(new Color(255, 255, 255));
@@ -100,8 +99,6 @@ public class BorrowingManagerPanel extends JPanel {
          cbReader.setBackground(Color.WHITE);
          cbStaff.setBackground(Color.WHITE); // Style cho ComboBox Nhân viên
          cbStatus.setBackground(Color.WHITE);
-         dcBorrowDate.setBackground(Color.WHITE);
-         dcReturnDate.setBackground(Color.WHITE);
 
         // Ví dụ:
         gbc.gridx = 0; gbc.gridy = 0; gbc.anchor = GridBagConstraints.EAST; gbc.weightx = 0;
@@ -127,12 +124,12 @@ public class BorrowingManagerPanel extends JPanel {
         gbc.gridx = 0; gbc.gridy = 2; gbc.anchor = GridBagConstraints.EAST; gbc.weightx = 0;
         inputPanel.add(new JLabel("Ngày Mượn:"), gbc);
         gbc.gridx = 1; gbc.gridy = 2; gbc.anchor = GridBagConstraints.WEST; gbc.weightx = 0.5;
-        inputPanel.add(dcBorrowDate, gbc); // Thêm JDateChooser ngày mượn
+        inputPanel.add(tfBorrowDate, gbc); // Thêm JTextField ngày mượn
 
         gbc.gridx = 2; gbc.gridy = 2; gbc.anchor = GridBagConstraints.EAST; gbc.weightx = 0;
         inputPanel.add(new JLabel("Ngày Trả:"), gbc);
         gbc.gridx = 3; gbc.gridy = 2; gbc.anchor = GridBagConstraints.WEST; gbc.weightx = 0.5;
-        inputPanel.add(dcReturnDate, gbc); // Thêm JDateChooser ngày trả
+        inputPanel.add(tfReturnDate, gbc); // Thêm JTextField ngày trả
 
         gbc.gridx = 0; gbc.gridy = 3; gbc.anchor = GridBagConstraints.EAST; gbc.weightx = 0; // Chuyển xuống dòng mới
         inputPanel.add(new JLabel("Trạng thái:"), gbc);
@@ -221,8 +218,8 @@ public class BorrowingManagerPanel extends JPanel {
                             setSelectedComboBoxById(cbBook, selectedBorrowing.getBookId());
                             setSelectedComboBoxById(cbReader, selectedBorrowing.getReaderId());
                             setSelectedComboBoxById(cbStaff, selectedBorrowing.getStaffId()); // Set ComboBox Nhân viên
-                            dcBorrowDate.setDate(selectedBorrowing.getBorrowDate());
-                            dcReturnDate.setDate(selectedBorrowing.getReturnDate());
+                            tfBorrowDate.setText(selectedBorrowing.getBorrowDate() != null ? dateFormat.format(selectedBorrowing.getBorrowDate()) : "");
+                            tfReturnDate.setText(selectedBorrowing.getReturnDate() != null ? dateFormat.format(selectedBorrowing.getReturnDate()) : "");
                             cbStatus.setSelectedItem(selectedBorrowing.getStatus());
                         }
 
@@ -308,7 +305,13 @@ public class BorrowingManagerPanel extends JPanel {
             Reader selectedReader = (Reader) cbReader.getSelectedItem();
             Staff selectedStaff = (Staff) cbStaff.getSelectedItem(); // Lấy Nhân viên được chọn
             String status = (String) cbStatus.getSelectedItem();
-            Date borrowUtilDate = dcBorrowDate.getDate();
+            Date borrowUtilDate = null;
+            try {
+                borrowUtilDate = dateFormat.parse(tfBorrowDate.getText());
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this, "Ngày mượn không hợp lệ! Định dạng đúng: yyyy-MM-dd", "Lỗi", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
 
             if (selectedBook == null || selectedReader == null || selectedStaff == null || status == null || borrowUtilDate == null) {
                 JOptionPane.showMessageDialog(this, "Vui lòng điền đầy đủ thông tin (Sách, Độc giả, Nhân viên, Ngày Mượn, Trạng thái).", "Lỗi", JOptionPane.ERROR_MESSAGE);
@@ -347,8 +350,22 @@ public class BorrowingManagerPanel extends JPanel {
             Reader selectedReader = (Reader) cbReader.getSelectedItem();
             Staff selectedStaff = (Staff) cbStaff.getSelectedItem(); // Lấy Nhân viên được chọn
             String status = (String) cbStatus.getSelectedItem();
-            Date borrowUtilDate = dcBorrowDate.getDate();
-            Date returnUtilDate = dcReturnDate.getDate();
+            Date borrowUtilDate = null;
+            Date returnUtilDate = null;
+            try {
+                borrowUtilDate = dateFormat.parse(tfBorrowDate.getText());
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this, "Ngày mượn không hợp lệ! Định dạng đúng: yyyy-MM-dd", "Lỗi", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            try {
+                if (!tfReturnDate.getText().trim().isEmpty()) {
+                    returnUtilDate = dateFormat.parse(tfReturnDate.getText());
+                }
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this, "Ngày trả không hợp lệ! Định dạng đúng: yyyy-MM-dd", "Lỗi", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
 
             if (selectedBook == null || selectedReader == null || selectedStaff == null || status == null || borrowUtilDate == null) {
                 JOptionPane.showMessageDialog(this, "Vui lòng điền đầy đủ thông tin (Sách, Độc giả, Nhân viên, Ngày Mượn, Trạng thái).", "Lỗi", JOptionPane.ERROR_MESSAGE);
@@ -472,8 +489,8 @@ public class BorrowingManagerPanel extends JPanel {
         cbBook.setSelectedIndex(-1);
         cbReader.setSelectedIndex(-1);
         cbStaff.setSelectedIndex(-1);
-        dcBorrowDate.setDate(null);
-        dcReturnDate.setDate(null);
+        tfBorrowDate.setText("");
+        tfReturnDate.setText("");
         cbStatus.setSelectedIndex(-1);
         tfBorrowId.setEnabled(true);
     }
