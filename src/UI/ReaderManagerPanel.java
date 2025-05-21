@@ -188,7 +188,10 @@ public class ReaderManagerPanel extends JPanel {
     }
 
     // ====== HÀM TẢI DANH SÁCH ĐỘC GIẢ ======
-    // Phương thức để tải danh sách độc giả từ database và hiển thị lên bảng
+    /**
+     * Tải danh sách độc giả từ database và hiển thị lên bảng
+     * Reset các trường nhập liệu sau khi tải
+     */
     private void loadReaders() {
         // Lấy danh sách độc giả từ DAO
         List<Reader> readers = readerDAO.getAllReaders();
@@ -208,7 +211,10 @@ public class ReaderManagerPanel extends JPanel {
     }
 
     // ====== HÀM THÊM ĐỘC GIẢ ======
-    // Phương thức xử lý thêm độc giả mới
+    /**
+     * Thêm độc giả mới vào database
+     * Kiểm tra dữ liệu đầu vào trước khi thêm
+     */
     private void addReader() {
         try {
             // Kiểm tra các trường bắt buộc
@@ -241,7 +247,10 @@ public class ReaderManagerPanel extends JPanel {
     }
 
     // ====== HÀM SỬA ĐỘC GIẢ ======
-    // Phương thức xử lý cập nhật thông tin độc giả
+    /**
+     * Cập nhật thông tin độc giả đã chọn
+     * Kiểm tra dữ liệu đầu vào trước khi cập nhật
+     */
     private void updateReader() {
         try {
              // Kiểm tra xem đã chọn độc giả từ bảng chưa
@@ -282,7 +291,10 @@ public class ReaderManagerPanel extends JPanel {
     }
 
     // ====== HÀM XÓA ĐỘC GIẢ ======
-    // Phương thức xử lý xóa độc giả
+    /**
+     * Xóa độc giả đã chọn khỏi database
+     * Hiển thị xác nhận trước khi xóa
+     */
     private void deleteReader() {
         try {
              // Kiểm tra xem đã chọn độc giả từ bảng chưa
@@ -316,7 +328,10 @@ public class ReaderManagerPanel extends JPanel {
     }
 
     // ====== HÀM TÌM KIẾM ĐỘC GIẢ ======
-    // Phương thức xử lý tìm kiếm độc giả
+    /**
+     * Tìm kiếm độc giả theo từ khóa trên tất cả các trường
+     * Nếu ô tìm kiếm rỗng sẽ hiển thị lại toàn bộ danh sách
+     */
     private void searchReader() {
         // Lấy từ khóa tìm kiếm và chuyển về chữ thường
         String keyword = tfSearch.getText().trim().toLowerCase();
@@ -369,7 +384,9 @@ public class ReaderManagerPanel extends JPanel {
         }
     }
     
-    // Phương thức tiện ích để xóa trắng các ô nhập liệu và bật lại ô ID
+    /**
+     * Xóa trắng các trường nhập liệu và bật lại ô ID
+     */
     private void clearInputFields() {
         tfId.setText("");
         tfName.setText("");

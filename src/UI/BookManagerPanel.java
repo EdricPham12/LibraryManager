@@ -16,10 +16,14 @@ import java.awt.*;
 import java.awt.event.*;
 import java.util.List;
 
-// Lớp panel quản lý thông tin Sách
+/**
+ * Panel quản lý thông tin Sách trong hệ thống thư viện
+ * Bao gồm các chức năng: Thêm, Sửa, Xóa, Tìm kiếm sách
+ * Tích hợp với các bảng liên quan: Tác giả, Nhà xuất bản, Thể loại
+ */
 public class BookManagerPanel extends JPanel {
 
-    // Khai báo các thành phần giao diện
+    // ====== KHAI BÁO CÁC THÀNH PHẦN GIAO DIỆN ======
     private JTable table; // Bảng hiển thị danh sách sách
     private DefaultTableModel tableModel; // Model cho bảng
     private JTextField tfId, tfTitle, tfYear, tfPrice, tfStock, tfSearch; // Các trường nhập liệu và tìm kiếm
@@ -27,10 +31,13 @@ public class BookManagerPanel extends JPanel {
     private JComboBox<Publisher> cbPublisher; // ComboBox chọn Nhà xuất bản
     private JComboBox<Category> cbCategory; // ComboBox chọn Thể loại
 
-    // Khai báo DAO để tương tác với cơ sở dữ liệu sách
-    private BookDAO bookDAO = new BookDAO();
+    // ====== KHAI BÁO DAO ======
+    private BookDAO bookDAO = new BookDAO(); // DAO để tương tác với cơ sở dữ liệu sách
 
-    // Constructor của lớp BookManagerPanel
+    /**
+     * Constructor của lớp BookManagerPanel
+     * Khởi tạo giao diện và các thành phần cần thiết
+     */
     public BookManagerPanel() {
         // Thiết lập layout cho panel chính là BorderLayout
         setLayout(new BorderLayout(10, 10));
@@ -222,23 +229,31 @@ public class BookManagerPanel extends JPanel {
         table.addMouseListener(new MouseAdapter() {
             public void mouseClicked(MouseEvent e) {
                 int row = table.getSelectedRow();
-                tfId.setText(tableModel.getValueAt(row, 0).toString());
-                tfTitle.setText(tableModel.getValueAt(row, 1).toString());
-                setSelectedComboBox(cbAuthor, tableModel.getValueAt(row, 2).toString());
-                setSelectedComboBox(cbPublisher, tableModel.getValueAt(row, 3).toString());
-                tfYear.setText(tableModel.getValueAt(row, 4).toString()); // Năm xuất bản đúng cột
-                setSelectedComboBox(cbCategory, tableModel.getValueAt(row, 5).toString()); // Thể loại đúng cột
-                tfPrice.setText(tableModel.getValueAt(row, 6).toString());
-                tfStock.setText(tableModel.getValueAt(row, 7).toString());
-                tfId.setEnabled(false);
+                if (row >= 0) {
+                    // Lấy dữ liệu từ hàng được chọn và điền vào các trường nhập liệu
+                    tfId.setText(tableModel.getValueAt(row, 0).toString());
+                    tfTitle.setText(tableModel.getValueAt(row, 1).toString());
+                    setSelectedComboBox(cbAuthor, tableModel.getValueAt(row, 2).toString());
+                    setSelectedComboBox(cbPublisher, tableModel.getValueAt(row, 3).toString());
+                    tfYear.setText(tableModel.getValueAt(row, 4).toString());
+                    setSelectedComboBox(cbCategory, tableModel.getValueAt(row, 5).toString());
+                    tfPrice.setText(tableModel.getValueAt(row, 6).toString());
+                    tfStock.setText(tableModel.getValueAt(row, 7).toString());
+                    tfId.setEnabled(false); // Khóa ô ID khi đang sửa
+                }
             }
         });
 
         // Tải dữ liệu sách lần đầu khi panel được hiển thị
         loadBooks();
+        clearInputFields(); // Xóa trắng các ô nhập lúc đầu
     }
 
-    // Phương thức để tải danh sách sách từ database và hiển thị lên bảng
+    /**
+     * Phương thức tải danh sách sách từ database và hiển thị lên bảng
+     * Lấy dữ liệu từ BookDAO và các DAO liên quan (Author, Publisher, Category)
+     * để hiển thị đầy đủ thông tin sách
+     */
     private void loadBooks() {
         // Lấy danh sách sách từ DAO
         List<Book> books = bookDAO.getAllBooks();
@@ -254,124 +269,226 @@ public class BookManagerPanel extends JPanel {
             String authorName = "(Không xác định)";
             String publisherName = "(Không xác định)";
             String categoryName = "(Không xác định)";
+            // Tìm tên tác giả tương ứng với ID
             for (Author a : authorDAO.getAllAuthors()) {
                 if (a.getId() == b.getAuthorId()) {
                     authorName = a.getName();
                     break;
                 }
             }
+            // Tìm tên nhà xuất bản tương ứng với ID
             for (Publisher p : publisherDAO.getAllPublishers()) {
                 if (p.getId() == b.getPublisherId()) {
                     publisherName = p.getName();
                     break;
                 }
             }
+            // Tìm tên thể loại tương ứng với ID
             for (Category c : categoryDAO.getAllCategories()) {
                 if (c.getId() == b.getCategoryId()) {
                     categoryName = c.getName();
                     break;
                 }
             }
+            // Thêm hàng dữ liệu vào bảng
             tableModel.addRow(new Object[]{
                     b.getId(), b.getTitle(), authorName, publisherName, b.getYear(), categoryName,
                     b.getPrice(), b.getStock()
             });
         }
+        clearInputFields(); // Xóa trắng ô nhập sau khi tải lại
     }
 
-    // Phương thức xử lý thêm sách mới
+    /**
+     * Phương thức xử lý thêm sách mới
+     * Kiểm tra dữ liệu đầu vào và thêm vào database
+     */
     private void addBook() {
         try {
-            // Tạo đối tượng Book từ dữ liệu nhập liệu (luôn dùng ID 0 cho thêm mới)
+            // Kiểm tra các trường bắt buộc
+            if (tfTitle.getText().trim().isEmpty() || 
+                cbAuthor.getSelectedItem() == null || 
+                cbPublisher.getSelectedItem() == null || 
+                cbCategory.getSelectedItem() == null || 
+                tfYear.getText().trim().isEmpty() || 
+                tfPrice.getText().trim().isEmpty() || 
+                tfStock.getText().trim().isEmpty()) {
+                JOptionPane.showMessageDialog(this, 
+                    "Vui lòng điền đầy đủ thông tin sách.", 
+                    "Lỗi", 
+                    JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            // Kiểm tra định dạng số
+            try {
+                int year = Integer.parseInt(tfYear.getText().trim());
+                double price = Double.parseDouble(tfPrice.getText().trim());
+                int stock = Integer.parseInt(tfStock.getText().trim());
+                
+                // Kiểm tra giá trị hợp lệ
+                if (year < 0 || price < 0 || stock < 0) {
+                    throw new NumberFormatException("Giá trị không được âm");
+                }
+            } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(this, 
+                    "Vui lòng nhập đúng định dạng số cho năm, giá và tồn kho.", 
+                    "Lỗi", 
+                    JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            // Tạo đối tượng Book từ dữ liệu nhập liệu
             Book b = new Book(0, 
-                    tfTitle.getText(),
-                    // Lấy ID từ item được chọn trong ComboBox
+                    tfTitle.getText().trim(),
                     ((Author) cbAuthor.getSelectedItem()).getId(),
                     ((Publisher) cbPublisher.getSelectedItem()).getId(),
                     ((Category) cbCategory.getSelectedItem()).getId(),
-                    // Chuyển đổi dữ liệu từ String sang kiểu số
-                    Integer.parseInt(tfYear.getText()),
-                    Double.parseDouble(tfPrice.getText()),
-                    Integer.parseInt(tfStock.getText())
+                    Integer.parseInt(tfYear.getText().trim()),
+                    Double.parseDouble(tfPrice.getText().trim()),
+                    Integer.parseInt(tfStock.getText().trim())
             );
+
             // Gọi phương thức insert của DAO
             if (bookDAO.insertBook(b)) {
-                // Hiển thị thông báo thành công và tải lại bảng
-                JOptionPane.showMessageDialog(this, "Thêm sách thành công");
+                JOptionPane.showMessageDialog(this, "Thêm sách thành công!");
                 loadBooks();
+                clearInputFields();
             } else {
-                // Hiển thị thông báo thất bại
-                JOptionPane.showMessageDialog(this, "Thêm sách thất bại");
+                JOptionPane.showMessageDialog(this, "Thêm sách thất bại.");
             }
         } catch (Exception ex) {
-            // Xử lý lỗi và hiển thị thông báo lỗi
             JOptionPane.showMessageDialog(this, "Lỗi: " + ex.getMessage());
         }
     }
 
-    // Phương thức xử lý cập nhật thông tin sách
+    /**
+     * Phương thức xử lý cập nhật thông tin sách
+     * Kiểm tra dữ liệu đầu vào và cập nhật vào database
+     */
     private void updateBook() {
         try {
-            // Tạo đối tượng Book từ dữ liệu nhập liệu (bao gồm ID)
+            // Kiểm tra xem đã chọn sách từ bảng chưa
+            if (tfId.getText().isEmpty()) {
+                JOptionPane.showMessageDialog(this, 
+                    "Vui lòng chọn sách cần cập nhật từ bảng.", 
+                    "Cảnh báo", 
+                    JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+
+            // Kiểm tra các trường bắt buộc
+            if (tfTitle.getText().trim().isEmpty() || 
+                cbAuthor.getSelectedItem() == null || 
+                cbPublisher.getSelectedItem() == null || 
+                cbCategory.getSelectedItem() == null || 
+                tfYear.getText().trim().isEmpty() || 
+                tfPrice.getText().trim().isEmpty() || 
+                tfStock.getText().trim().isEmpty()) {
+                JOptionPane.showMessageDialog(this, 
+                    "Vui lòng điền đầy đủ thông tin sách.", 
+                    "Lỗi", 
+                    JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            // Kiểm tra định dạng số
+            try {
+                int year = Integer.parseInt(tfYear.getText().trim());
+                double price = Double.parseDouble(tfPrice.getText().trim());
+                int stock = Integer.parseInt(tfStock.getText().trim());
+                
+                // Kiểm tra giá trị hợp lệ
+                if (year < 0 || price < 0 || stock < 0) {
+                    throw new NumberFormatException("Giá trị không được âm");
+                }
+            } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(this, 
+                    "Vui lòng nhập đúng định dạng số cho năm, giá và tồn kho.", 
+                    "Lỗi", 
+                    JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            // Tạo đối tượng Book từ dữ liệu nhập liệu
             Book b = new Book(
-                    Integer.parseInt(tfId.getText()), // Lấy ID từ ô nhập liệu
-                    tfTitle.getText(),
+                    Integer.parseInt(tfId.getText().trim()),
+                    tfTitle.getText().trim(),
                     ((Author) cbAuthor.getSelectedItem()).getId(),
                     ((Publisher) cbPublisher.getSelectedItem()).getId(),
                     ((Category) cbCategory.getSelectedItem()).getId(),
-                    Integer.parseInt(tfYear.getText()),
-                    Double.parseDouble(tfPrice.getText()),
-                    Integer.parseInt(tfStock.getText())
+                    Integer.parseInt(tfYear.getText().trim()),
+                    Double.parseDouble(tfPrice.getText().trim()),
+                    Integer.parseInt(tfStock.getText().trim())
             );
+
             // Gọi phương thức update của DAO
             if (bookDAO.updateBook(b)) {
-                // Hiển thị thông báo thành công và tải lại bảng
-                JOptionPane.showMessageDialog(this, "Cập nhật thành công");
+                JOptionPane.showMessageDialog(this, "Cập nhật thành công!");
                 loadBooks();
+                clearInputFields();
             } else {
-                // Hiển thị thông báo thất bại
-                JOptionPane.showMessageDialog(this, "Cập nhật thất bại");
+                JOptionPane.showMessageDialog(this, "Cập nhật thất bại.");
             }
         } catch (Exception ex) {
-            // Xử lý lỗi và hiển thị thông báo lỗi
             JOptionPane.showMessageDialog(this, "Lỗi: " + ex.getMessage());
         }
     }
 
-    // Phương thức xử lý xóa sách
+    /**
+     * Phương thức xử lý xóa sách
+     * Kiểm tra và xóa sách khỏi database
+     */
     private void deleteBook() {
         try {
+            // Kiểm tra xem đã chọn sách từ bảng chưa
+            if (tfId.getText().isEmpty()) {
+                JOptionPane.showMessageDialog(this, 
+                    "Vui lòng chọn sách cần xóa từ bảng.", 
+                    "Cảnh báo", 
+                    JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+
             // Lấy ID sách cần xóa
-            int id = Integer.parseInt(tfId.getText());
+            int id = Integer.parseInt(tfId.getText().trim());
+            
             // Hiển thị hộp thoại xác nhận xóa
-            int confirm = JOptionPane.showConfirmDialog(this, "Bạn chắc chắn xoá?", "Xác nhận", JOptionPane.YES_NO_OPTION);
+            int confirm = JOptionPane.showConfirmDialog(this, 
+                "Bạn có chắc chắn muốn xóa sách này?", 
+                "Xác nhận xóa", 
+                JOptionPane.YES_NO_OPTION);
+            
             // Nếu người dùng xác nhận xóa
             if (confirm == JOptionPane.YES_OPTION) {
                 // Gọi phương thức delete của DAO
                 if (bookDAO.deleteBook(id)) {
-                    // Hiển thị thông báo thành công và tải lại bảng
-                    JOptionPane.showMessageDialog(this, "Xoá thành công");
+                    JOptionPane.showMessageDialog(this, "Xóa thành công!");
                     loadBooks();
+                    clearInputFields();
                 } else {
-                    // Hiển thị thông báo thất bại
-                    JOptionPane.showMessageDialog(this, "Xoá thất bại");
+                    JOptionPane.showMessageDialog(this, "Xóa thất bại.");
                 }
             }
         } catch (Exception ex) {
-            // Xử lý lỗi và hiển thị thông báo lỗi
             JOptionPane.showMessageDialog(this, "Lỗi: " + ex.getMessage());
         }
     }
 
-    // Phương thức xử lý tìm kiếm sách
+    /**
+     * Phương thức xử lý tìm kiếm sách
+     * Tìm kiếm theo từ khóa trong tất cả các trường
+     */
     private void searchBook() {
         // Lấy từ khóa tìm kiếm và chuyển về chữ thường
         String keyword = tfSearch.getText().trim().toLowerCase();
+        
         // Nếu từ khóa rỗng, tải lại toàn bộ danh sách
         if (keyword.isEmpty()) {
             loadBooks();
             return;
         }
+
         // Lấy toàn bộ danh sách sách và các DAO liên quan
         List<Book> books = bookDAO.getAllBooks();
         AuthorDAO authorDAO = new AuthorDAO();
@@ -380,30 +497,38 @@ public class BookManagerPanel extends JPanel {
 
         // Xóa dữ liệu cũ trên bảng
         tableModel.setRowCount(0);
+        
         // Duyệt qua danh sách sách để tìm kiếm
         for (Book b : books) {
             String authorName = "(Không xác định)";
             String publisherName = "(Không xác định)";
             String categoryName = "(Không xác định)";
+            
+            // Tìm tên tác giả tương ứng với ID
             for (Author a : authorDAO.getAllAuthors()) {
                 if (a.getId() == b.getAuthorId()) {
                     authorName = a.getName();
                     break;
                 }
             }
+            
+            // Tìm tên nhà xuất bản tương ứng với ID
             for (Publisher p : publisherDAO.getAllPublishers()) {
                 if (p.getId() == b.getPublisherId()) {
                     publisherName = p.getName();
                     break;
                 }
             }
+            
+            // Tìm tên thể loại tương ứng với ID
             for (Category c : categoryDAO.getAllCategories()) {
                 if (c.getId() == b.getCategoryId()) {
                     categoryName = c.getName();
                     break;
                 }
             }
-            // Kiểm tra nếu từ khóa khớp với bất kỳ trường nào (ID, tiêu đề, tên tác giả/NXB/thể loại, năm, giá, tồn kho)
+
+            // Kiểm tra nếu từ khóa khớp với bất kỳ trường nào
             if (String.valueOf(b.getId()).contains(keyword) ||
                 b.getTitle().toLowerCase().contains(keyword) ||
                 authorName.toLowerCase().contains(keyword) ||
@@ -412,6 +537,7 @@ public class BookManagerPanel extends JPanel {
                 String.valueOf(b.getYear()).contains(keyword) ||
                 String.valueOf(b.getPrice()).contains(keyword) ||
                 String.valueOf(b.getStock()).contains(keyword)) {
+                
                 // Thêm hàng dữ liệu nếu khớp
                 tableModel.addRow(new Object[]{
                         b.getId(), b.getTitle(), authorName, publisherName, b.getYear(), categoryName,
@@ -421,22 +547,29 @@ public class BookManagerPanel extends JPanel {
         }
     }
 
-    // ====== CLASS BO GÓC CHO Ô NHẬP ======
-    // Lớp nội bộ để tạo hiệu ứng bo tròn cho viền các ô nhập liệu
+    /**
+     * Lớp nội bộ để tạo hiệu ứng bo tròn cho viền các ô nhập liệu
+     */
     static class RoundedBorder extends AbstractBorder {
         private int radius;
-        RoundedBorder(int radius) { this.radius = radius; }
+        
+        RoundedBorder(int radius) { 
+            this.radius = radius; 
+        }
+        
         @Override
         public void paintBorder(Component c, Graphics g, int x, int y, int width, int height) {
             // Vẽ hình chữ nhật bo góc
             g.setColor(Color.LIGHT_GRAY);
             g.drawRoundRect(x, y, width - 1, height - 1, radius, radius);
         }
+        
         @Override
         public Insets getBorderInsets(Component c) {
             // Điều chỉnh khoảng cách nội dung bên trong border
             return new Insets(this.radius+1, this.radius+1, this.radius+1, this.radius+1);
         }
+        
         @Override
         public Insets getBorderInsets(Component c, Insets insets) {
             // Điều chỉnh khoảng cách nội dung bên trong border (override)
@@ -445,17 +578,22 @@ public class BookManagerPanel extends JPanel {
         }
     }
 
-    // ====== HÀM TIỆN ÍCH CHỌN COMBOBOX THEO TÊN ======
-    // Phương thức helper để chọn item trong JComboBox dựa trên tên hiển thị
+    /**
+     * Phương thức helper để chọn item trong JComboBox dựa trên tên hiển thị
+     * @param comboBox ComboBox cần chọn item
+     * @param name Tên của item cần chọn
+     */
     private <T> void setSelectedComboBox(JComboBox<T> comboBox, String name) {
         // Duyệt qua tất cả các item trong ComboBox
         for (int i = 0; i < comboBox.getItemCount(); i++) {
             Object item = comboBox.getItemAt(i);
             String itemName = "";
-            // Lấy tên của item (tùy thuộc vào kiểu dữ liệu Tác giả, NXB, Thể loại)
+            
+            // Lấy tên của item (tùy thuộc vào kiểu dữ liệu)
             if (item instanceof Author) itemName = ((Author) item).getName();
             else if (item instanceof Publisher) itemName = ((Publisher) item).getName();
             else if (item instanceof Category) itemName = ((Category) item).getName();
+            
             // Nếu tên khớp với tên cần chọn
             if (itemName.equals(name)) {
                 // Chọn item đó trong ComboBox
@@ -465,13 +603,15 @@ public class BookManagerPanel extends JPanel {
         }
     }
 
-    // Phương thức tiện ích để xóa trắng các ô nhập liệu và bật lại ô ID
+    /**
+     * Phương thức tiện ích để xóa trắng các ô nhập liệu và bật lại ô ID
+     */
     private void clearInputFields() {
         tfId.setText("");
         tfTitle.setText("");
         tfYear.setText("");
         tfPrice.setText("");
-        tfStock.setText(""); // Xóa trắng ô tồn kho
+        tfStock.setText("");
         tfId.setEnabled(true); // Bật lại ô ID
     }
 }
