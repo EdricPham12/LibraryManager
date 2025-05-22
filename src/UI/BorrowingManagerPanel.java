@@ -483,7 +483,7 @@ public class BorrowingManagerPanel extends JPanel {
         }
     }
 
-    // Helper method to clear input fields
+    // Phương thức trợ giúp để xóa các trường nhập
     private void clearInputFields() {
         tfBorrowId.setText("");
         cbBook.setSelectedIndex(-1);
@@ -495,7 +495,7 @@ public class BorrowingManagerPanel extends JPanel {
         tfBorrowId.setEnabled(true);
     }
 
-    // Helper method to set selected item in JComboBox by ID
+    // Phương thức trợ giúp để thiết lập mục được chọn trong JComboBox theo ID
     private <T> void setSelectedComboBoxById(JComboBox<T> comboBox, int id) {
         for (int i = 0; i < comboBox.getItemCount(); i++) {
             Object item = comboBox.getItemAt(i);
