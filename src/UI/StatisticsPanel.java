@@ -41,7 +41,7 @@ public class StatisticsPanel extends JPanel {
 
         // Panel bên trái chứa bảng thống kê
         JPanel tablePanel = new JPanel(new BorderLayout());
-        
+
         // Bảng thống kê sách được mượn nhiều nhất
         DefaultTableModel tableModel = new DefaultTableModel(new String[]{"Mã sách", "Tiêu đề sách", "Số lượt mượn"}, 0) {
             @Override
