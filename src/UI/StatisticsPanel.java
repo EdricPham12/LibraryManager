@@ -12,8 +12,17 @@ import java.util.stream.Collectors;
 
 import dao.BorrowingDAO;
 import dao.BookDAO;
+import dao.CategoryDAO;
 import model.Borrowing;
 import model.Book;
+import model.Category;
+
+import org.jfree.chart.ChartFactory;
+import org.jfree.chart.ChartPanel;
+import org.jfree.chart.JFreeChart;
+import org.jfree.data.general.DefaultPieDataset;
+import org.jfree.chart.plot.PiePlot;
+import org.jfree.chart.title.TextTitle;
 
 public class StatisticsPanel extends JPanel {
 
@@ -26,10 +35,13 @@ public class StatisticsPanel extends JPanel {
         add(titleLabel, BorderLayout.NORTH);
 
         // Khu vực này sẽ chứa các biểu đồ, bảng thống kê chi tiết
-        JPanel contentPanel = new JPanel(new BorderLayout());
+        JPanel contentPanel = new JPanel(new GridLayout(1, 2, 10, 0)); // Chia làm 2 phần
         contentPanel.setBackground(new Color(235, 245, 255));
         contentPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
+        // Panel bên trái chứa bảng thống kê
+        JPanel tablePanel = new JPanel(new BorderLayout());
+        
         // Bảng thống kê sách được mượn nhiều nhất
         DefaultTableModel tableModel = new DefaultTableModel(new String[]{"Mã sách", "Tiêu đề sách", "Số lượt mượn"}, 0) {
             @Override
@@ -49,7 +61,13 @@ public class StatisticsPanel extends JPanel {
         statisticsTable.getColumnModel().getColumn(2).setPreferredWidth(100);
 
         JScrollPane scrollPane = new JScrollPane(statisticsTable);
-        contentPanel.add(scrollPane, BorderLayout.CENTER);
+        tablePanel.add(scrollPane, BorderLayout.CENTER);
+        contentPanel.add(tablePanel);
+
+        // Panel bên phải chứa biểu đồ tròn
+        JPanel chartPanel = new JPanel(new BorderLayout());
+        chartPanel.add(createPieChart(), BorderLayout.CENTER);
+        contentPanel.add(chartPanel);
 
         add(contentPanel, BorderLayout.CENTER);
 
@@ -70,7 +88,79 @@ public class StatisticsPanel extends JPanel {
         loadMostBorrowedBooks(tableModel);
         
         // ====== SỰ KIỆN ======
-        btnLoad.addActionListener(e -> loadMostBorrowedBooks(tableModel));
+        btnLoad.addActionListener(e -> {
+            loadMostBorrowedBooks(tableModel);
+            updatePieChart(chartPanel);
+        });
+    }
+
+    // Phương thức tạo biểu đồ tròn
+    private JPanel createPieChart() {
+        DefaultPieDataset dataset = new DefaultPieDataset();
+        
+        // Lấy dữ liệu từ database
+        BorrowingDAO borrowingDAO = new BorrowingDAO();
+        BookDAO bookDAO = new BookDAO();
+        CategoryDAO categoryDAO = new CategoryDAO();
+        
+        List<Borrowing> borrowings = borrowingDAO.getAllBorrowings();
+        List<Book> allBooks = bookDAO.getAllBooks();
+        List<Category> allCategories = categoryDAO.getAllCategories();
+        
+        // Đếm số sách đang mượn theo thể loại
+        Map<Integer, Integer> categoryCounts = new HashMap<>();
+        for (Borrowing b : borrowings) {
+            if ("Đang mượn".equals(b.getStatus())) {
+                for (Book book : allBooks) {
+                    if (book.getId() == b.getBookId()) {
+                        categoryCounts.put(book.getCategoryId(), 
+                            categoryCounts.getOrDefault(book.getCategoryId(), 0) + 1);
+                        break;
+                    }
+                }
+            }
+        }
+        
+        // Thêm dữ liệu vào dataset
+        for (Map.Entry<Integer, Integer> entry : categoryCounts.entrySet()) {
+            for (Category cat : allCategories) {
+                if (cat.getId() == entry.getKey()) {
+                    dataset.setValue(cat.getName(), entry.getValue());
+                    break;
+                }
+            }
+        }
+        
+        // Tạo biểu đồ
+        JFreeChart chart = ChartFactory.createPieChart(
+            "Tỷ lệ sách đang mượn theo thể loại",  // Tiêu đề
+            dataset,                              // Dataset
+            true,                                 // Legend
+            true,                                 // Tooltips
+            false                                 // URLs
+        );
+        
+        // Tùy chỉnh font chữ
+        chart.setTitle(new TextTitle("Tỷ lệ sách đang mượn theo thể loại", 
+            new Font("Arial", Font.BOLD, 16)));
+        chart.getLegend().setItemFont(new Font("Arial", Font.PLAIN, 12));
+        
+        PiePlot plot = (PiePlot) chart.getPlot();
+        plot.setLabelFont(new Font("Arial", Font.PLAIN, 12));
+        
+        // Tạo panel chứa biểu đồ
+        ChartPanel chartPanel = new ChartPanel(chart);
+        chartPanel.setPreferredSize(new Dimension(400, 300));
+        
+        return chartPanel;
+    }
+    
+    // Phương thức cập nhật biểu đồ tròn
+    private void updatePieChart(JPanel chartPanel) {
+        chartPanel.removeAll();
+        chartPanel.add(createPieChart(), BorderLayout.CENTER);
+        chartPanel.revalidate();
+        chartPanel.repaint();
     }
 
     // Phương thức để tải và hiển thị thống kê sách được mượn nhiều nhất

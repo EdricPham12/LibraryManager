@@ -180,6 +180,8 @@ public class AuthorManagerPanel extends JPanel {
                 JOptionPane.showMessageDialog(this, "Thêm tác giả thành công!");
                 loadAuthors();
                 clearInputFields();
+                // Thông báo cho các panel khác cập nhật dữ liệu
+                notifyAuthorDataChanged();
             } else {
                 JOptionPane.showMessageDialog(this, "Thêm tác giả thất bại.");
             }
@@ -209,6 +211,8 @@ public class AuthorManagerPanel extends JPanel {
                 JOptionPane.showMessageDialog(this, "Cập nhật tác giả thành công!");
                 loadAuthors();
                 clearInputFields();
+                // Thông báo cho các panel khác cập nhật dữ liệu
+                notifyAuthorDataChanged();
             } else {
                 JOptionPane.showMessageDialog(this, "Cập nhật tác giả thất bại.");
             }
@@ -235,6 +239,8 @@ public class AuthorManagerPanel extends JPanel {
                     JOptionPane.showMessageDialog(this, "Xóa tác giả thành công!");
                     loadAuthors();
                     clearInputFields();
+                    // Thông báo cho các panel khác cập nhật dữ liệu
+                    notifyAuthorDataChanged();
                 } else {
                     JOptionPane.showMessageDialog(this, "Xóa tác giả thất bại.");
                 }
@@ -287,6 +293,25 @@ public class AuthorManagerPanel extends JPanel {
         public Insets getBorderInsets(Component c, Insets insets) {
             insets.left = insets.right = insets.top = insets.bottom = this.radius+1;
             return insets;
+        }
+    }
+
+    // Phương thức thông báo cho các panel khác cập nhật dữ liệu tác giả
+    private void notifyAuthorDataChanged() {
+        // Tìm tất cả các panel trong ứng dụng
+        Container parent = this.getParent();
+        while (parent != null && !(parent instanceof JFrame)) {
+            parent = parent.getParent();
+        }
+        if (parent != null) {
+            // Tìm tất cả các panel trong frame
+            Component[] components = ((JFrame) parent).getContentPane().getComponents();
+            for (Component comp : components) {
+                if (comp instanceof BookManagerPanel) {
+                    // Gọi phương thức cập nhật dữ liệu của BookManagerPanel
+                    ((BookManagerPanel) comp).loadComboBoxData();
+                }
+            }
         }
     }
 } 

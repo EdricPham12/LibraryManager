@@ -238,6 +238,8 @@ public class StaffManagerPanel extends JPanel {
                 JOptionPane.showMessageDialog(this, "Thêm nhân viên thành công!");
                 loadStaffs();
                 clearInputFields();
+                // Thông báo cho các panel khác cập nhật dữ liệu
+                notifyStaffDataChanged();
             } else {
                 JOptionPane.showMessageDialog(this, "Thêm nhân viên thất bại.");
             }
@@ -269,6 +271,8 @@ public class StaffManagerPanel extends JPanel {
                 JOptionPane.showMessageDialog(this, "Cập nhật thành công!");
                 loadStaffs();
                 clearInputFields();
+                // Thông báo cho các panel khác cập nhật dữ liệu
+                notifyStaffDataChanged();
             } else {
                 JOptionPane.showMessageDialog(this, "Cập nhật thất bại.");
             }
@@ -299,6 +303,8 @@ public class StaffManagerPanel extends JPanel {
                     JOptionPane.showMessageDialog(this, "Xoá thành công!");
                     loadStaffs();
                     clearInputFields();
+                    // Thông báo cho các panel khác cập nhật dữ liệu
+                    notifyStaffDataChanged();
                 } else {
                     // Hiển thị thông báo thất bại
                     JOptionPane.showMessageDialog(this, "Xoá thất bại.");
@@ -377,5 +383,24 @@ public class StaffManagerPanel extends JPanel {
         tfEmail.setText("");
         cbPosition.setSelectedIndex(-1); // Chọn item đầu tiên (nếu có) hoặc không chọn gì (-1)
         tfStaffId.setEnabled(true); // Bật lại ô ID
+    }
+
+    // Phương thức thông báo cho các panel khác cập nhật dữ liệu nhân viên
+    private void notifyStaffDataChanged() {
+        // Tìm tất cả các panel trong ứng dụng
+        Container parent = this.getParent();
+        while (parent != null && !(parent instanceof JFrame)) {
+            parent = parent.getParent();
+        }
+        if (parent != null) {
+            // Tìm tất cả các panel trong frame
+            Component[] components = ((JFrame) parent).getContentPane().getComponents();
+            for (Component comp : components) {
+                if (comp instanceof BorrowingManagerPanel) {
+                    // Gọi phương thức cập nhật dữ liệu của BorrowingManagerPanel
+                    ((BorrowingManagerPanel) comp).loadComboBoxData();
+                }
+            }
+        }
     }
 } 

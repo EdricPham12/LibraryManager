@@ -33,6 +33,7 @@ public class BookManagerPanel extends JPanel {
 
     // ====== KHAI BÁO DAO ======
     private BookDAO bookDAO = new BookDAO(); // DAO để tương tác với cơ sở dữ liệu sách
+    private CategoryDAO categoryDAO = new CategoryDAO(); // DAO để tương tác với cơ sở dữ liệu thể loại
 
     /**
      * Constructor của lớp BookManagerPanel
@@ -91,10 +92,8 @@ public class BookManagerPanel extends JPanel {
         // Load dữ liệu vào ComboBox từ các DAO tương ứng
         AuthorDAO authorDAO = new AuthorDAO();
         PublisherDAO publisherDAO = new PublisherDAO();
-        CategoryDAO categoryDAO = new CategoryDAO();
         for (Author a : authorDAO.getAllAuthors()) cbAuthor.addItem(a);
         for (Publisher p : publisherDAO.getAllPublishers()) cbPublisher.addItem(p);
-        for (Category c : categoryDAO.getAllCategories()) cbCategory.addItem(c);
 
         // Bo góc cho các ô nhập liệu và ComboBox
         JTextField[] fields = {tfId, tfTitle, tfYear, tfPrice, tfStock};
@@ -218,7 +217,10 @@ public class BookManagerPanel extends JPanel {
 
         // ====== SỰ KIỆN ======
         // Thêm các ActionListener cho các nút để xử lý sự kiện click
-        btnLoad.addActionListener(e -> loadBooks());
+        btnLoad.addActionListener(e -> {
+            loadBooks();
+            loadComboBoxData();
+        });
         btnAdd.addActionListener(e -> addBook());
         btnUpdate.addActionListener(e -> updateBook());
         btnDelete.addActionListener(e -> deleteBook());
@@ -354,11 +356,13 @@ public class BookManagerPanel extends JPanel {
                 JOptionPane.showMessageDialog(this, "Thêm sách thành công!");
                 loadBooks();
                 clearInputFields();
+                // Thông báo cho các panel khác cập nhật dữ liệu
+                notifyBookDataChanged();
             } else {
                 JOptionPane.showMessageDialog(this, "Thêm sách thất bại.");
             }
         } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, "Lỗi: " + ex.getMessage());
+            JOptionPane.showMessageDialog(this, "Lỗi khi thêm sách: " + ex.getMessage());
         }
     }
 
@@ -427,11 +431,13 @@ public class BookManagerPanel extends JPanel {
                 JOptionPane.showMessageDialog(this, "Cập nhật thành công!");
                 loadBooks();
                 clearInputFields();
+                // Thông báo cho các panel khác cập nhật dữ liệu
+                notifyBookDataChanged();
             } else {
                 JOptionPane.showMessageDialog(this, "Cập nhật thất bại.");
             }
         } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, "Lỗi: " + ex.getMessage());
+            JOptionPane.showMessageDialog(this, "Lỗi khi cập nhật sách: " + ex.getMessage());
         }
     }
 
@@ -466,12 +472,14 @@ public class BookManagerPanel extends JPanel {
                     JOptionPane.showMessageDialog(this, "Xóa thành công!");
                     loadBooks();
                     clearInputFields();
+                    // Thông báo cho các panel khác cập nhật dữ liệu
+                    notifyBookDataChanged();
                 } else {
                     JOptionPane.showMessageDialog(this, "Xóa thất bại.");
                 }
             }
         } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, "Lỗi: " + ex.getMessage());
+            JOptionPane.showMessageDialog(this, "Lỗi khi xóa sách: " + ex.getMessage());
         }
     }
 
@@ -613,5 +621,39 @@ public class BookManagerPanel extends JPanel {
         tfPrice.setText("");
         tfStock.setText("");
         tfId.setEnabled(true); // Bật lại ô ID
+    }
+
+    // Phương thức thông báo cho các panel khác cập nhật dữ liệu sách
+    private void notifyBookDataChanged() {
+        // Tìm tất cả các panel trong ứng dụng
+        Container parent = this.getParent();
+        while (parent != null && !(parent instanceof JFrame)) {
+            parent = parent.getParent();
+        }
+        if (parent != null) {
+            // Tìm tất cả các panel trong frame
+            Component[] components = ((JFrame) parent).getContentPane().getComponents();
+            for (Component comp : components) {
+                if (comp instanceof BorrowingManagerPanel) {
+                    // Gọi phương thức cập nhật dữ liệu của BorrowingManagerPanel
+                    ((BorrowingManagerPanel) comp).loadComboBoxData();
+                }
+            }
+        }
+    }
+
+    // Phương thức cập nhật dữ liệu cho ComboBox
+    public void loadComboBoxData() {
+        try {
+            // Cập nhật dữ liệu cho ComboBox thể loại
+            DefaultComboBoxModel<Category> categoryModel = new DefaultComboBoxModel<>();
+            List<Category> categories = categoryDAO.getAllCategories();
+            for (Category category : categories) {
+                categoryModel.addElement(category);
+            }
+            cbCategory.setModel(categoryModel);
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "Lỗi khi cập nhật dữ liệu ComboBox: " + ex.getMessage());
+        }
     }
 }

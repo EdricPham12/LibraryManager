@@ -193,7 +193,10 @@ public class BorrowingManagerPanel extends JPanel {
 
         // ====== SỰ KIỆN ======
         // Thêm các ActionListener cho các nút tại đây
-        btnLoad.addActionListener(e -> loadBorrowings());
+        btnLoad.addActionListener(e -> {
+            loadBorrowings();
+            loadComboBoxData();
+        });
         btnSearch.addActionListener(e -> searchBorrowing());
         tfSearch.addActionListener(e -> searchBorrowing());
 
@@ -243,7 +246,7 @@ public class BorrowingManagerPanel extends JPanel {
         clearInputFields(); // Xóa trắng các ô nhập lúc đầu
     }
 
-    private void loadComboBoxData() {
+    public void loadComboBoxData() {
          // Clear existing items
         cbBook.removeAllItems();
         cbReader.removeAllItems();

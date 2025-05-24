@@ -225,6 +225,8 @@ public class CategoryManagerPanel extends JPanel {
                 JOptionPane.showMessageDialog(this, "Thêm danh mục thành công!");
                 loadCategories();
                 clearInputFields();
+                // Thông báo cho các panel khác cập nhật dữ liệu
+                notifyCategoryDataChanged();
             } else {
                 // Hiển thị thông báo thất bại
                 JOptionPane.showMessageDialog(this, "Thêm danh mục thất bại.");
@@ -260,6 +262,8 @@ public class CategoryManagerPanel extends JPanel {
                 JOptionPane.showMessageDialog(this, "Cập nhật thành công!");
                 loadCategories();
                 clearInputFields();
+                // Thông báo cho các panel khác cập nhật dữ liệu
+                notifyCategoryDataChanged();
             } else {
                 // Hiển thị thông báo thất bại
                 JOptionPane.showMessageDialog(this, "Cập nhật thất bại.");
@@ -292,6 +296,8 @@ public class CategoryManagerPanel extends JPanel {
                     JOptionPane.showMessageDialog(this, "Xoá thành công!");
                     loadCategories();
                     clearInputFields();
+                    // Thông báo cho các panel khác cập nhật dữ liệu
+                    notifyCategoryDataChanged();
                 } else {
                     // Hiển thị thông báo thất bại
                     JOptionPane.showMessageDialog(this, "Xoá thất bại.");
@@ -364,5 +370,24 @@ public class CategoryManagerPanel extends JPanel {
         tfName.setText("");
         taDescription.setText("");
         tfId.setEnabled(true);
+    }
+
+    // Phương thức thông báo cho các panel khác cập nhật dữ liệu thể loại
+    private void notifyCategoryDataChanged() {
+        // Tìm tất cả các panel trong ứng dụng
+        Container parent = this.getParent();
+        while (parent != null && !(parent instanceof JFrame)) {
+            parent = parent.getParent();
+        }
+        if (parent != null) {
+            // Tìm tất cả các panel trong frame
+            Component[] components = ((JFrame) parent).getContentPane().getComponents();
+            for (Component comp : components) {
+                if (comp instanceof BookManagerPanel) {
+                    // Gọi phương thức cập nhật dữ liệu của BookManagerPanel
+                    ((BookManagerPanel) comp).loadComboBoxData();
+                }
+            }
+        }
     }
 } 

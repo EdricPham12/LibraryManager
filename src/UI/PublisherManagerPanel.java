@@ -226,6 +226,8 @@ public class PublisherManagerPanel extends JPanel {
                 JOptionPane.showMessageDialog(this, "Thêm nhà xuất bản thành công!");
                 loadPublishers();
                 clearInputFields();
+                // Thông báo cho các panel khác cập nhật dữ liệu
+                notifyPublisherDataChanged();
             } else {
                 // Hiển thị thông báo thất bại
                 JOptionPane.showMessageDialog(this, "Thêm nhà xuất bản thất bại.");
@@ -262,6 +264,8 @@ public class PublisherManagerPanel extends JPanel {
                 JOptionPane.showMessageDialog(this, "Cập nhật thành công!");
                 loadPublishers();
                 clearInputFields();
+                // Thông báo cho các panel khác cập nhật dữ liệu
+                notifyPublisherDataChanged();
             } else {
                 // Hiển thị thông báo thất bại
                 JOptionPane.showMessageDialog(this, "Cập nhật thất bại.");
@@ -294,6 +298,8 @@ public class PublisherManagerPanel extends JPanel {
                     JOptionPane.showMessageDialog(this, "Xoá thành công!");
                     loadPublishers();
                     clearInputFields();
+                    // Thông báo cho các panel khác cập nhật dữ liệu
+                    notifyPublisherDataChanged();
                 } else {
                     // Hiển thị thông báo thất bại
                     JOptionPane.showMessageDialog(this, "Xoá thất bại.");
@@ -366,5 +372,24 @@ public class PublisherManagerPanel extends JPanel {
         tfAddress.setText("");
         tfPhone.setText("");
         tfId.setEnabled(true);
+    }
+
+    // Phương thức thông báo cho các panel khác cập nhật dữ liệu nhà xuất bản
+    private void notifyPublisherDataChanged() {
+        // Tìm tất cả các panel trong ứng dụng
+        Container parent = this.getParent();
+        while (parent != null && !(parent instanceof JFrame)) {
+            parent = parent.getParent();
+        }
+        if (parent != null) {
+            // Tìm tất cả các panel trong frame
+            Component[] components = ((JFrame) parent).getContentPane().getComponents();
+            for (Component comp : components) {
+                if (comp instanceof BookManagerPanel) {
+                    // Gọi phương thức cập nhật dữ liệu của BookManagerPanel
+                    ((BookManagerPanel) comp).loadComboBoxData();
+                }
+            }
+        }
     }
 } 
